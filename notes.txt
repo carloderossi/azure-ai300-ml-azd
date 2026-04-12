@@ -1,0 +1,29 @@
+1. az login [just to double check user and select right subscription]
+2. azd auth login
+[in case: winget upgrade Microsoft.Azd]
+3. set default subscription:
+    azd env set AZURE_SUBSCRIPTION_ID d1b6798c-2525-4e55-9959-8dbd1223b45b
+    ? Enter a unique environment name: azure-ml-azd-template                                                                                                                                                                   
+    New environment 'azure-ml-azd-template' created and set as default
+
+[if you change the .env file remeber to call "azd env refresh"]
+
+4. validate: 
+    azd provision --preview
+
+[if an PERMISSIONS issue:
+PS C:\Carlo\Azure\AI-300\labs\azure-ml-azd-template> az role assignment list --assignee carloadmin@charliebossanovaoutlook.onmicrosoft.com --subscription d1b6798c-2525-4e55-9959-8dbd1223b45b --output table         
+Principal                                           Role            Scope
+--------------------------------------------------  --------------  ---------------------------------------------------
+carloadmin@charliebossanovaoutlook.onmicrosoft.com  Azure AI Owner  /subscriptions/d1b6798c-2525-4e55-9959-8dbd1223b45b
+carloadmin@charliebossanovaoutlook.onmicrosoft.com  Contributor     /subscriptions/d1b6798c-2525-4e55-9959-8dbd1223b45b
+PS C:\Carlo\Azure\AI-300\labs\azure-ml-azd-template> 
+]
+
+5. azd up
+
+
+END. 
+    azd down --force --purge
+
+python -m src.train.train_job

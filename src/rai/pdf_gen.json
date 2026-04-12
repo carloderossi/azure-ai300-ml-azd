@@ -1,0 +1,23 @@
+{
+  "Model": {
+    "ModelName": "Adult Income Classifier",
+    "ModelType": "Classification",
+    "ModelSummary": "Predicts income >50K based on demographic features."
+  },
+  "Metrics": {
+    "accuracy_score": {
+      "threshold": ">=0.80"
+    }
+  },
+  "FeatureImportance": {
+    "top_n": 6
+  },
+  "DataExplorer": {
+    "features": ["age", "education-num", "hours-per-week", "sex", "race"]
+  },
+  "Fairness": {
+    "metric": ["accuracy_score", "selection_rate"],
+    "sensitive_features": ["sex", "race"],
+    "fairness_evaluation_kind": "difference"
+  }
+}

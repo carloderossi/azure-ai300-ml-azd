@@ -1,0 +1,19 @@
+[project]
+name = "ai300-labs"
+version = "0.1.0"
+description = "AI-300 labs with updated RAI pipeline"
+requires-python = "==3.10.*"
+
+dependencies = [
+    "azure-ai-ml>=1.16.0",
+    "raiwidgets==0.36.0",
+    "responsibleai==0.36.0",
+    "pandas<2.0.0",
+    "numpy<=1.26.2",
+    "scikit-learn<=1.2.2",
+    "matplotlib<4.0.0",
+]
+
+[tool.uv]
+# Ensures uv installs the correct Python version automatically
+python-preference = "only-managed"

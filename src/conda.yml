@@ -1,0 +1,14 @@
+# src/conda.yml
+name: adult-train-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - azure-ai-ml
+      - mlflow
+      - scikit-learn
+      - pandas
+      - azureml-mlflow
+      - azureml-core

@@ -1,0 +1,21 @@
+name: azure-ml-azd-template
+# metadata:
+#   template: azure-ml-azd-template
+
+infra:
+  provider: bicep
+  path: ./infra
+
+# services:
+#    ml:
+#      project: src
+#      language: python
+#      host: ai.endpoint
+#      config:
+#       deployment:
+#         type: none
+#         path: .
+
+# requiredVersions:
+  # extensions:
+        

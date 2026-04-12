@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Young",
+    "cohort_filter_list": [
+      {
+        "method": "less",
+        "arg": [30],
+        "column": "age"
+      }
+    ]
+  },
+  {
+    "name": "Older",
+    "cohort_filter_list": [
+      {
+        "method": "greater",
+        "arg": [50],
+        "column": "age"
+      }
+    ]
+  }
+]
