@@ -2,12 +2,12 @@ from azure.ai.ml import MLClient, Input, dsl
 from azure.ai.ml.constants import AssetTypes
 from azure.identity import DefaultAzureCredential
 
-from azure.ai.ml.entities import (
-    RAIInsightsConstructor,
-    RAIInsightsGather,
-    RAIInsightsScorecard,
-    RAIInsightsDashboard,
-)
+# from azure.ai.ml.entities import (
+#     RAIInsightsConstructor,
+#     RAIInsightsGather,
+#     RAIInsightsScorecard,
+#     RAIInsightsDashboard,
+# )
 
 # -------------------------------------------------------------------
 # MLClient initialization
@@ -20,9 +20,20 @@ ml_client = getMLClient(None)
 # Model + data references
 # -------------------------------------------------------------------
 model_path = "azureml:credit_defaults_model:1"
-train_data = "azureml:credit_defaults_model:1"  # keep as in your lab for now
-test_data = "azureml:credit_defaults_model:1"
+train_data = "azureml:credit_defaults_train:4"  # use version 1 in case
+test_data = "azureml:credit_defaults_test:4"
 target_column = "income"
+
+from azure.ai.ml import load_component
+
+# -------------------------------------------------------------------
+# Load RAI Components from the Registry
+# -------------------------------------------------------------------
+# These names are standard across Azure ML regions
+version = "0.0.1" # Or the latest version available in your region
+rai_constructor_comp = ml_client.components.get(name="microsoft_azureml_rai_tabular_insight_constructor", version=version)
+rai_gather_comp = ml_client.components.get(name="microsoft_azureml_rai_tabular_insight_gather", version=version)
+rai_scorecard_comp = ml_client.components.get(name="microsoft_azureml_rai_tabular_insight_scorecard", version=version)
 
 # -------------------------------------------------------------------
 # Pipeline definition
@@ -31,13 +42,15 @@ target_column = "income"
 def rai_pipeline():
 
     # 1. Constructor
-    constructor_job = RAIInsightsConstructor(
-        title="credit_defaults_model RAI Dashboard",
+    constructor_job = rai_constructor_comp(
+        title="Credit Defaults RAI Dashboard",
         task_type="classification",
+        model_info=model_path,
         model_input=Input(type=AssetTypes.MLFLOW_MODEL, path=model_path),
-        train_data=Input(type=AssetTypes.MLTABLE, path=train_data),
-        test_data=Input(type=AssetTypes.MLTABLE, path=test_data),
+        train_dataset=Input(type=AssetTypes.MLTABLE, path=train_data),
+        test_dataset=Input(type=AssetTypes.MLTABLE, path=test_data),
         target_column_name="income",
+        categorical_column_names='[]' # Add if needed
     )
 
     # 2. Insights

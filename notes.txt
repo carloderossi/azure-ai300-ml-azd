@@ -1,3 +1,6 @@
+Basic Machine learning repository with AZD file structure
+
+Creating the infrastructure
 1. az login [just to double check user and select right subscription]
 2. azd auth login
 [in case: winget upgrade Microsoft.Azd]
@@ -26,4 +29,16 @@ PS C:\Carlo\Azure\AI-300\labs\azure-ml-azd-template>
 END. 
     azd down --force --purge
 
-python -m src.train.train_job
+
+
+Running the train examples
+- create data : uv run python -m src.register_data
+- uv run python -m src.train.train_job
+- uv run python -m src.train.create_job2
+
+(re-)Register the model:
+- uv run python -m src.register_model_asset
+
+Register data set for RAI:
+- uv run python -m src.register_credit_dataset
+- uv run python -m src.rai.rai_pipeline
