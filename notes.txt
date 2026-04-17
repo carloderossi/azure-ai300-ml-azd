@@ -1,4 +1,5 @@
 Basic Machine learning repository with AZD file structure
+https://github.com/MicrosoftLearning/mslearn-mlops
 
 Creating the infrastructure
 1. az login [just to double check user and select right subscription]

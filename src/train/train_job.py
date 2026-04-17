@@ -9,10 +9,22 @@ from azure.ai.ml.constants import AssetTypes
 from azure.ai.ml.entities import AmlCompute, ComputeInstance
 from azure.core.exceptions import ResourceNotFoundError
 
-from src.auth import getMLClient
+from src.auth import getMLClient, load_config
 import time
 
 # python -m src.train.train_job
+
+def downlad_joblogs(job):
+    try:
+        # Create a directory for logs
+        os.makedirs(f"./job_logs/{job.name}", exist_ok=True)
+
+        # Download all logs and outputs
+        ml_client.jobs.download(name=run.name, download_path="./job_logs", output_name="logs")
+    except Exception as e:
+        print(f"Failed to download logs for {job.name}", e)
+
+print(f"Logs have been downloaded to the ./job_logs folder.")
 
 def wait_for_job(ml_client, job_name, poll_interval=5):
     """Block until the given job enters a terminal state.
@@ -41,12 +53,12 @@ def create_dataset(ml_client):
     dataset_name = "adultraw"
     # datastore = ml_client.datastores.get("workspaceblobstore")
 
-    data_version = "1"
+    dataset_version = "1"
     try:
-        data_asset = ml_client.data.get(name=dataset_name, version=data_version)
-        print(f"Dataset '{dataset_name}' version '{data_version}' already exists: {data_asset.id}")  
+        data_asset = ml_client.data.get(name=dataset_name, version=dataset_version)
+        print(f"Dataset '{dataset_name}' version '{dataset_version}' already exists: {data_asset.id}")  
     except Exception as e:
-        print(f"Dataset '{dataset_name}' version '{data_version}' not found. Creating new one...")
+        print(f"Dataset '{dataset_name}' version '{dataset_version}' not found. Creating new one...")
         # ml_client.data.get(name=dataset_name, version=data_version)
         data_asset = Data(
             name=dataset_name,
@@ -59,7 +71,7 @@ def create_dataset(ml_client):
         print(f"Dataset '{dataset_name}' created : {data_asset}")
 
     print(f"Dataset '{dataset_name}' created with id: {data_asset.id}")
-    return dataset_name
+    return dataset_name, dataset_version
 
 def create_compute(ml_client, compute_instance_name="ml-ai300-cpu"):
     vm_size = "STANDARD_DS11_V2"
@@ -91,10 +103,15 @@ def create_compute(ml_client, compute_instance_name="ml-ai300-cpu"):
 
 ml_client = getMLClient(None)
 
+cfg = load_config(None)
+compute_name = cfg["AZURE_COMPUTE_INSTANCE"] # "ml-ai300-cpu"
+if not compute_name:
+    compute_name = "ml-ai300-cpu"
+
 from azure.ai.ml.entities import Environment
 
-env_name = "logisticRegMLFlow-env"
-env_version = "1"
+env_name = "ai300-logRegMLFlow-env"
+env_version = "v2"
 
 try:
     env = ml_client.environments.get(env_name, env_version)
@@ -105,20 +122,21 @@ except Exception:
         name=env_name,
         version=env_version,
         image="mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04",
-        conda_file="src/conda.yml",
+        conda_file="src/trainenv.yaml", #conda.yml
     )
     ml_client.environments.create_or_update(env)
     print("Environment created.")
 
 create_compute(ml_client)
 
-dataset_name = create_dataset(ml_client)
+dataset_name, dataset_version = create_dataset(ml_client)
+print(f"Dataset: '{dataset_name}' '{dataset_version}'")
 
 print(f"Creating job inputs...")
 csv_job_inputs = {
     "input_data": Input(
         type=AssetTypes.URI_FILE,
-        path=f"azureml:{dataset_name}:1"
+        path=f"azureml:{dataset_name}:{dataset_version}"
     ),
     "input_format": "csv"   # or "mltable"
 }
@@ -129,30 +147,46 @@ repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 job = command(
     code="./src/train",
     command="python train.py --inputs ${{inputs.input_data}} --format ${{inputs.input_format}}",
-    environment=f"azureml:{env_name}:1",
+    environment=env, #f"azureml:{env_name}:{env_version}", # let Azure auto-detect Env changes
     experiment_name="adult-train-exp",
-    compute="ml-ai300-cpu",
+    compute=compute_name,
     inputs=csv_job_inputs
 )
 
 run = ml_client.jobs.create_or_update(job)
 print("Submitted job:", run.name)
 
-wait_for_job(ml_client, run.name, 10)
-if job.status in ["Failed", "Canceled"]:
-    print(f"Job did not competed succesfully '{job.status}'")
-    exit()
+ret_job = wait_for_job(ml_client, run.name, 10)
+if ret_job.status in ["Failed", "Canceled"]:
+    # Access the error details
+    if ret_job.error:
+        print(f"Error Code: {ret_job.error.code}")
+        print(f"Error Message: {ret_job.error.message}")
+    else:
+        print("Job failed, but no specific error message was returned by the compute.")
+    
+    downlad_joblogs(ret_job)
+
+    # Optional: Get the Studio URL to inspect visually
+    print(f"Check the portal for details: {ret_job.services['Studio'].endpoint}")
+    exit(0)
+
 
 from azure.ai.ml.entities import Model
 
 model_uri = f"runs:/{run.id}/model"
 
-registered_model = Model(
-    name="adult_model",
-    version="1",
-    type="mlflow_model",
-    path=model_uri,
-)
+try:
+    registered_model = Model(
+        name="adult_model",
+        version="1",
+        type="mlflow_model",
+        path=model_uri,
+    )
 
-ml_client.models.create_or_update(registered_model)
-print("Registered model as adult_model:1")
+    ml_client.models.create_or_update(registered_model)
+    print("Registered model as adult_model:1")
+except Exception as e:
+    print(f"did not work {e}")
+
+print("Done.")

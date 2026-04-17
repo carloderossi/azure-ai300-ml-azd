@@ -8,7 +8,7 @@ resource instance 'Microsoft.MachineLearningServices/workspaces/computes@2024-04
   properties: {
     computeType: 'ComputeInstance'
     properties: {
-      vmSize: 'STANDARD_DS3_V2'
+      vmSize: 'STANDARD_DS11_V2' //'STANDARD_DS3_V2'
     }
   }
 }
