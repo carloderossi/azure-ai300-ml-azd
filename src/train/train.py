@@ -1,4 +1,5 @@
 # src/train/train.py
+# python "C:\Carlo\Azure\AI-300\labs\azure-ml-azd-template\src\train\train.py" --inputs "C:\Carlo\Azure\AI-300\labs\azure-ml-azd-template\src\data\adult_raw\adult.csv" --format csv
 
 import os
 import mlflow

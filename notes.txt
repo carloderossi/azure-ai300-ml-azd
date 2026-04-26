@@ -43,3 +43,18 @@ Running the train examples
 Register data set for RAI:
 - uv run python -m src.register_credit_dataset
 - uv run python -m src.rai.rai_pipeline
+
+
+az provider register --namespace Microsoft.MachineLearningServices
+az provider register --namespace Microsoft.CognitiveServices
+az provider register --namespace Microsoft.Storage
+az provider register --namespace Microsoft.KeyVault
+az provider register --namespace Microsoft.Compute
+az provider register --namespace Microsoft.Network
+az provider register --namespace Microsoft.Batch
+az provider register --namespace Microsoft.ManagedIdentity
+az provider register --namespace Microsoft.Authorization
+az provider register --namespace Microsoft.Resources
+az provider register --namespace Microsoft.OperationalInsights
+az provider register --namespace Microsoft.Insights
+az provider register --namespace Microsoft.MarketplaceOrdering

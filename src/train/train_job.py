@@ -18,7 +18,11 @@ def downlad_joblogs(job):
     try:
         # Create a directory for logs
         os.makedirs(f"./job_logs/{job.name}", exist_ok=True)
-
+        # It waits for the job and prints ALL logs (build logs + python logs)
+        try:
+            ml_client.jobs.stream(job.name)
+        except Exception as e:
+            print(f"Stream interrupted or job failed: {e}")
         # Download all logs and outputs
         ml_client.jobs.download(name=run.name, download_path="./job_logs", output_name="logs")
     except Exception as e:
@@ -110,8 +114,8 @@ if not compute_name:
 
 from azure.ai.ml.entities import Environment
 
-env_name = "ai300-logRegMLFlow-env"
-env_version = "v2"
+env_name = "ai300-py310sklearnMLFlow-env"
+env_version = "v1"
 
 try:
     env = ml_client.environments.get(env_name, env_version)
@@ -120,9 +124,9 @@ except Exception:
     print("Creating environment...")
     env = Environment(
         name=env_name,
-        version=env_version,
+        # version=env_version, # yaml file hashing comparison
         image="mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04",
-        conda_file="src/trainenv.yaml", #conda.yml
+        conda_file="src/trainenv.yaml", #"src/conda.yml", #"src/trainenv.yaml", 
     )
     ml_client.environments.create_or_update(env)
     print("Environment created.")
@@ -158,6 +162,10 @@ print("Submitted job:", run.name)
 
 ret_job = wait_for_job(ml_client, run.name, 10)
 if ret_job.status in ["Failed", "Canceled"]:
+    try:
+        ml_client.jobs.stream(job.name)
+    except Exception as e:
+        print(f"Stream interrupted or job failed: {e}")
     # Access the error details
     if ret_job.error:
         print(f"Error Code: {ret_job.error.code}")

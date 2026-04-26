@@ -2,8 +2,9 @@ param workspaceName string
 param location string
 
 var prefixValue = replace(workspaceName, '-', '')
+var randomSuffix = uniqueString(resourceGroup().id)
 resource storage 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: '${prefixValue}stacc'
+  name: 'stacc${randomSuffix}'
   location: location
   sku: { name: 'Standard_LRS' }
   kind: 'StorageV2'
@@ -32,7 +33,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
 }
 
 resource appi 'Microsoft.Insights/components@2020-02-02' = {
-  name: '${prefixValue}appi'
+  name: 'appi${randomSuffix}'
   location: location
   kind: 'web'
   properties: {
