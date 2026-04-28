@@ -6,6 +6,7 @@ from azure.ai.ml.constants import AssetTypes, InputOutputModes
 from azure.ai.ml.entities import Environment
 from azure.ai.ml.entities import Data
 from azure.ai.ml.constants import AssetTypes
+from azure.ai.ml.entities import Model
 from azure.ai.ml.entities import AmlCompute, ComputeInstance
 from azure.core.exceptions import ResourceNotFoundError
 
@@ -180,22 +181,34 @@ if ret_job.status in ["Failed", "Canceled"]:
     print(f"Check the portal for details: {ret_job.services['Studio'].endpoint}")
     exit(0)
 
+downlad_joblogs(ret_job)
+print("\n=== DOWNLOAD MLFLOW MODEL ===")
+print(f"Downloading model artifact from job '{ret_job.name}' outputs...")
+ml_client.jobs.download(
+    name=ret_job.name,
+    output_name="model",
+    download_path="./models/"
+)
 
+print("\n=== REGISTERING MLFLOW MODEL ===")
 from azure.ai.ml.entities import Model
 
-model_uri = f"runs:/{run.id}/model"
+#model_uri = f"runs:/{run.id}/model"
+model_uri = f"azureml://{run.id}/outputs/model"
+print(f"Model URI: {model_uri}")
 
 try:
-    registered_model = Model(
+    model = Model(
         name="adult_model",
-        version="1",
         type="mlflow_model",
-        path=model_uri,
+        # path=f"azureml://{run.id}/outputs/model"
+        path=model_uri
     )
 
-    ml_client.models.create_or_update(registered_model)
-    print("Registered model as adult_model:1")
+    ml_client.models.create_or_update(model)
+    print("Registered model in Azure ML model registry")
 except Exception as e:
-    print(f"did not work {e}")
+    print("Registration failed:", e)
+
 
 print("Done.")
