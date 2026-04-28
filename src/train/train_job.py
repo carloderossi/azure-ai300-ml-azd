@@ -112,6 +112,7 @@ compute_name = cfg["AZURE_COMPUTE_INSTANCE"] # "ml-ai300-cpu"
 if not compute_name:
     compute_name = "ml-ai300-cpu"
 
+print("\n=== CREATING ENVIRONMENT ===")
 from azure.ai.ml.entities import Environment
 
 env_name = "ai300-py310sklearnMLFlow-env"
@@ -121,7 +122,7 @@ try:
     env = ml_client.environments.get(env_name, env_version)
     print(f"Environment already exists: {env.name}:{env.version}")
 except Exception:
-    print("Creating environment...")
+    print("Creating new environment...")
     env = Environment(
         name=env_name,
         # version=env_version, # yaml file hashing comparison
@@ -129,7 +130,7 @@ except Exception:
         conda_file="src/trainenv.yaml", #"src/conda.yml", #"src/trainenv.yaml", 
     )
     ml_client.environments.create_or_update(env)
-    print("Environment created.")
+    print(f"Environment created: {env.name} - {env.version}")
 
 create_compute(ml_client)
 
