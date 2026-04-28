@@ -86,6 +86,10 @@ try:
     print("Training model...")
     clf.fit(X_train, y_train)
     print(f"model train completed: {clf}")
+except Exception as e:
+    print(f"LogisticRegression Model training failed: {e}")
+    
+try:    
     print("Logging MLFLow model...")
     # mlflow.sklearn.log_model(clf, "model")
     mlflow.sklearn.log_model(
@@ -93,16 +97,20 @@ try:
         registered_model_name=registered_model_name,
         artifact_path=registered_model_name,
     )
+    print(f"MLFlow model logged: {registered_model_name}")
+except Exception as e:
+    print(f"log_model for MLFlow Model failed: {e}")
+
+try:    
     print("Saving MLFLow model...")
     mlflow.sklearn.save_model(
         sk_model=clf,
         path=os.path.join(registered_model_name, "trained_model"),
     )
-
-    print("Done.")
+    print(f"MLFlow model saved: {registered_model_name}")    
 except Exception as e:
     print(f"Classification Model training failed: {e}")
-
+print("Done.")
 mlflow.end_run()
 
 print("Training complete and model logged to MLflow.")
